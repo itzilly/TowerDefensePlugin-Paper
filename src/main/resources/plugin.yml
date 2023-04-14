@@ -1,0 +1,6 @@
+name: TowerDefense
+version: '${version}'
+main: com.itzilly.towerdefense.TowerDefense
+api-version: 1.19
+authors: [ itzilly ]
+description: Simple Tower Defense Plugin

@@ -1,0 +1,97 @@
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'java'
+}
+
+group = 'com.itzilly'
+version = '0.0.1'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc-repo'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT'
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+//task downloadServer {
+//    group = "server"
+//    doLast {
+//        // Create the server folder if it doesn't exist
+//        def serverFolder = file('server')
+//        if (!serverFolder.exists()) {  serverFolder.mkdirs()  }
+//
+//        // Get the latest build number for the PaperMC version
+//        def version = '1.19.4'
+//        def apiUrl = "https://api.papermc.io/v2/projects/paper/versions/${version}"
+//        def jsonSlurper = new JsonSlurper()
+//        def json = jsonSlurper.parseText(ant.get(src: apiUrl, quiet: true))
+//        def latestBuild = json.builds.max()
+//
+//        // Construct the download URL for the PaperMC server
+//        def serverUrl = "https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${latestBuild}/downloads/paper-${version}-${latestBuild}.jar"
+//        def serverFile = file('server/minecraft_server.jar')
+//        ant.get(src: serverUrl, dest: serverFile)
+//
+//        // Write the download information to a file
+//        def downloadInfo = [
+//                version: version,
+//                build: latestBuild
+//        ]
+//        def downloadInfoFile = file('server/download.info')
+//        downloadInfoFile.text = JsonOutput.toJson(downloadInfo)
+//
+//        // Create the eula.txt file
+//        def eulaFile = file('server/eula.txt')
+//        eulaFile << 'eula=true\n'
+//    }
+//}
+//
+//task runServer(dependsOn: 'downloadServer', type: JavaExec) {
+//    group = "server"
+//    description = "Run the PaperMC server"
+//
+//    def serverJar = file('server/server.jar')
+//    if (!serverJar.exists()) {
+//        dependsOn 'downloadServer'
+//    }
+//
+//
+//    commandLine 'java', '-Xmx2G', '-jar', 'server/server.jar', '--nogui'
+//
+//    workingDir file('server')
+//}
